@@ -1,6 +1,10 @@
 import { Divider, Stack } from "@mui/material";
+import AddQuad from "./quads/add/AddQuad";
+import BoardQuad from "./quads/board/BoardQuad";
+import GraphQuad from "./quads/graph/GraphQuad";
+import TextQuad from "./quads/text/TextQuad";
 
-function App() {
+export default function App() {
     return (
         <>
             <Stack
@@ -8,11 +12,11 @@ function App() {
                 divider={<Divider orientation="vertical" flexItem />}
                 spacing={2}
             >
-                <h1>Hello, world!</h1>
-                <h1>This is a test.</h1>
+                <AddQuad />
+                <BoardQuad />
+                <GraphQuad />
+                <TextQuad />
             </Stack>
         </>
     );
 }
-
-export default App;
