@@ -11,7 +11,7 @@ export default function Gameboard() {
 
     // ===== Board event handlers ==============================================
 
-    const onPieceDragBegin = (_piece: string, sourceSquare: Square): void => {
+    function onPieceDragBegin(_piece: string, sourceSquare: Square): void {
         // Short circuit if the game is over
         if (chess.gameOver()) return;
 
@@ -21,13 +21,13 @@ export default function Gameboard() {
 
         // Short circuit if it's not the player's turn
         if (pieceOnSquare.color !== chess.turn()) return;
-    };
+    }
 
-    const onPieceDrop = (
+    function onPieceDrop(
         sourceSquare: Square,
         targetSquare: Square,
         _piece: string
-    ): boolean => {
+    ): boolean {
         // Attempt the move
         const move: Move | null = chess.move({
             from: sourceSquare,
@@ -43,7 +43,14 @@ export default function Gameboard() {
         setPositionFEN(chess.fen());
 
         return true;
-    };
+    }
+
+    function onSquareClick(square: Square): void {
+        // Reset any highlighted squares
+        // Check fi
+    }
+
+    function onSquareRightClick(square: Square): void {}
 
     // ===== Render ============================================================
     return (
@@ -61,6 +68,8 @@ export default function Gameboard() {
                 // Event handlers
                 onPieceDragBegin={onPieceDragBegin}
                 onPieceDrop={onPieceDrop}
+                onSquareClick={onSquareClick}
+                onSquareRightClick={onSquareRightClick}
             />
         </>
     );
