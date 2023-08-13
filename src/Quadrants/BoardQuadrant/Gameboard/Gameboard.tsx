@@ -1,10 +1,11 @@
 import { Chess } from "chess.ts";
-import { Move, Piece, Square } from "chess.ts/dist/types";
+import { Move, Piece, PieceSymbol, Square } from "chess.ts/dist/types";
+import { isPieceSymbol } from "chess.ts/dist/utils";
 import { useState } from "react";
 import { Chessboard } from "react-chessboard";
 
 export default function Gameboard() {
-    const [chess, setChess] = useState(new Chess());
+    const [chess] = useState(new Chess());
     const [positionFEN, setPositionFEN] = useState(chess.fen());
 
     // ===== Hooks =============================================================
@@ -26,23 +27,49 @@ export default function Gameboard() {
     function onPieceDrop(
         sourceSquare: Square,
         targetSquare: Square,
-        _piece: string
+        piece: string
     ): boolean {
+        const pieceSymbol: PieceSymbol = piece[1].toLowerCase() as PieceSymbol;
+        // Ensure this conversion works
+        // This hacky solution is necessary because the chess.ts library doesn't
+        //  pass the pieces as Piece objects for no valid/good reason
+        if (!isPieceSymbol(pieceSymbol)) {
+            return false;
+        }
+
         // Attempt the move
         const move: Move | null = chess.move({
             from: sourceSquare,
             to: targetSquare,
+            promotion: pieceSymbol,
         });
+
+        // Now that the move is legal, update it in the game
+        setPositionFEN(chess.fen());
 
         // Short circuit if the move is illegal
         if (!move) {
             return false;
         }
 
-        // Now that the move is legal, update it in the game
-        setPositionFEN(chess.fen());
-
         return true;
+    }
+
+    function onPromotionCheck(
+        sourceSquare: Square,
+        targetSquare: Square,
+        piece: string
+    ): boolean {
+        return (
+            ((piece === "wP" &&
+                sourceSquare[1] === "7" &&
+                targetSquare[1] === "8") ||
+                (piece === "bP" &&
+                    sourceSquare[1] === "2" &&
+                    targetSquare[1] === "1")) &&
+            Math.abs(sourceSquare.charCodeAt(0) - targetSquare.charCodeAt(0)) <=
+                1
+        );
     }
 
     function onSquareClick(square: Square): void {
@@ -65,9 +92,11 @@ export default function Gameboard() {
                 customLightSquareStyle={{ backgroundColor: "#e6dbf1" }}
                 customSquareStyles={undefined}
                 position={positionFEN}
+                promotionToSquare={"h8"}
                 // Event handlers
                 onPieceDragBegin={onPieceDragBegin}
                 onPieceDrop={onPieceDrop}
+                onPromotionCheck={onPromotionCheck}
                 onSquareClick={onSquareClick}
                 onSquareRightClick={onSquareRightClick}
             />
