@@ -3,10 +3,19 @@ import { Move, Piece, PieceSymbol, Square } from "chess.ts/dist/types";
 import { isPieceSymbol } from "chess.ts/dist/utils";
 import { useState } from "react";
 import { Chessboard } from "react-chessboard";
+import { CustomSquareStyles } from "react-chessboard/dist/chessboard/types";
 
 export default function Gameboard() {
     const [chess] = useState(new Chess());
     const [positionFEN, setPositionFEN] = useState(chess.fen());
+
+    // Arrows
+    const arrowColor = "rgba(255, 0, 0, 0.8)";
+
+    // Square highlighting
+    const highlightedSquareColor = "rgba(0, 0, 255, 0.4)";
+    const [rightClickedSquares, setRightClickedSquares] =
+        useState<CustomSquareStyles>({});
 
     // ===== Hooks =============================================================
 
@@ -74,10 +83,20 @@ export default function Gameboard() {
 
     function onSquareClick(square: Square): void {
         // Reset any highlighted squares
-        // Check fi
+        setRightClickedSquares({});
     }
 
-    function onSquareRightClick(square: Square): void {}
+    function onSquareRightClick(square: Square): void {
+        setRightClickedSquares({
+            ...rightClickedSquares,
+            [square]:
+                rightClickedSquares[square] &&
+                rightClickedSquares[square]?.backgroundColor ===
+                    highlightedSquareColor
+                    ? undefined
+                    : { backgroundColor: highlightedSquareColor },
+        });
+    }
 
     // ===== Render ============================================================
     return (
@@ -87,10 +106,11 @@ export default function Gameboard() {
                 arePiecesDraggable={true}
                 arePremovesAllowed={false}
                 boardOrientation="white"
-                boardWidth={400} // TODO: Make this responsive
+                boardWidth={0.3 * window.innerWidth}
+                customArrowColor={arrowColor}
                 customDarkSquareStyle={{ backgroundColor: "#997db5" }}
                 customLightSquareStyle={{ backgroundColor: "#e6dbf1" }}
-                customSquareStyles={undefined}
+                customSquareStyles={{ ...rightClickedSquares }}
                 position={positionFEN}
                 promotionToSquare={"h8"}
                 // Event handlers
