@@ -33,9 +33,51 @@ export default function Gameboard() {
     const [rightClickedSquares, setRightClickedSquares] =
         useState<CustomSquareStyles>({});
 
-    // TODO: Check/mate highlighting
+    // Check/mate highlighting
+    const checkColor = "rgba(255, 0, 0, 0.4)";
+    type KingSquares = {
+        w: Square;
+        b: Square;
+    };
+    const [kingSquares, setKingSquares] = useState<KingSquares>({
+        w: "e1",
+        b: "e8",
+    });
+    const [checkSquares, setCheckSquares] = useState<CustomSquareStyles>({});
 
-    // ===== Hooks =============================================================
+    // ===== Game logic ========================================================
+
+    // Entrypoint: Checks game state and updates accordingly
+    function updateGameState(): void {
+        // Reset check highlighting
+        setCheckSquares({});
+
+        // Get which turn it is to play
+        const currentTurn = chess.turn();
+
+        // Check if the king is in check
+        if (chess.inCheck()) {
+            // If so, highlight the king
+            setCheckSquares({
+                [kingSquares[currentTurn]]: {
+                    background: `radial-gradient(circle, ${checkColor} 50%, transparent 65%)`,
+                },
+            });
+        }
+
+        // Check if the game is over
+        if (chess.gameOver()) {
+            // Check if the game was lost by checkmate
+            if (chess.inCheckmate()) {
+                // If so, highlight the losing king
+                setCheckSquares({
+                    [kingSquares[currentTurn]]: {
+                        backgroundColor: checkColor,
+                    },
+                });
+            }
+        }
+    }
 
     // ===== Board event handlers ==============================================
 
@@ -68,6 +110,7 @@ export default function Gameboard() {
         setRightClickedSquares({});
 
         const pieceSymbol: PieceSymbol = piece[1].toLowerCase() as PieceSymbol;
+        let currentTurn = chess.turn();
         // Ensure this conversion works
         // This hacky solution is necessary because the chess.ts library doesn't
         //  pass the pieces as Piece objects for no valid/good reason
@@ -82,21 +125,33 @@ export default function Gameboard() {
             promotion: pieceSymbol,
         });
 
-        // Reset highlight info if the move was legal
-        if (move) {
-            setMoveOptions({});
-            setMoveSelect({});
-            setLastSelectedSquare(null);
-            setLastMoveSquares({
-                [move.from]: { backgroundColor: lastMoveColor },
-                [move.to]: { backgroundColor: lastMoveColor },
+        // Update the position in the game
+        setPositionFEN(chess.fen());
+
+        // Shortcut - Quit if the move was illegal
+        if (!move) return false;
+
+        // Reset highlight info
+        setMoveOptions({});
+        setMoveSelect({});
+        setLastSelectedSquare(null);
+        setLastMoveSquares({
+            [move.from]: { backgroundColor: lastMoveColor },
+            [move.to]: { backgroundColor: lastMoveColor },
+        });
+
+        // If that was a king move, update the corresponding king square
+        if (pieceSymbol === "k") {
+            setKingSquares({
+                ...kingSquares,
+                [currentTurn]: targetSquare,
             });
         }
 
-        // Now that the move is legal, update it in the game
-        setPositionFEN(chess.fen());
+        // Go update the game state
+        updateGameState();
 
-        return Boolean(move).valueOf();
+        return true;
     }
 
     function onPromotionCheck(
@@ -185,8 +240,6 @@ export default function Gameboard() {
 
         // Update the move options
         setMoveOptions(nextMoves);
-
-        console.log(lastSelectedSquare);
     }
 
     function onSquareRightClick(square: Square): void {
@@ -219,6 +272,7 @@ export default function Gameboard() {
                     ...moveSelect,
                     ...lastMoveSquares,
                     ...rightClickedSquares,
+                    ...checkSquares,
                 }}
                 position={positionFEN}
                 promotionToSquare={"h8"}
