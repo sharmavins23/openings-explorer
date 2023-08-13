@@ -11,6 +11,7 @@ export default function Gameboard() {
 
     // Arrows
     const arrowColor = "rgba(255, 0, 0, 0.8)";
+    const [arrows, setArrows] = useState<Square[][]>([]);
 
     // Square highlighting
     const highlightedSquareColor = "rgba(0, 0, 255, 0.4)";
@@ -20,6 +21,13 @@ export default function Gameboard() {
     // ===== Hooks =============================================================
 
     // ===== Board event handlers ==============================================
+
+    function onArrowsChange(squares: Square[][]): void {
+        // Shortcut - If nothing actually has changed, don't update state
+        if (JSON.stringify(arrows) === JSON.stringify(squares)) return;
+
+        setArrows(squares);
+    }
 
     function onPieceDragBegin(_piece: string, sourceSquare: Square): void {
         // Short circuit if the game is over
@@ -108,12 +116,14 @@ export default function Gameboard() {
                 boardOrientation="white"
                 boardWidth={0.3 * window.innerWidth}
                 customArrowColor={arrowColor}
+                customArrows={arrows}
                 customDarkSquareStyle={{ backgroundColor: "#997db5" }}
                 customLightSquareStyle={{ backgroundColor: "#e6dbf1" }}
                 customSquareStyles={{ ...rightClickedSquares }}
                 position={positionFEN}
                 promotionToSquare={"h8"}
                 // Event handlers
+                onArrowsChange={onArrowsChange}
                 onPieceDragBegin={onPieceDragBegin}
                 onPieceDrop={onPieceDrop}
                 onPromotionCheck={onPromotionCheck}
